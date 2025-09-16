@@ -65,7 +65,7 @@ Future<List<Map<String, dynamic>>> getLeagueBanter(Map<String, dynamic> leagueDa
     try {
       parsed = jsonDecode(cleaned);
     } catch (e) {
-      print("❌ JSON decode failed: $e");
+   
       return [];
     }
 

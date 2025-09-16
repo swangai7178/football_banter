@@ -29,57 +29,75 @@ class _LeagueBanterPageState extends State<LeagueBanterPage> {
     }
   }
 
+  List<List<Map<String, dynamic>>> _chunkStandings(List standings, int size) {
+  final chunks = <List<Map<String, dynamic>>>[];
+  for (var i = 0; i < standings.length; i += size) {
+    chunks.add(
+      standings.sublist(i, i + size > standings.length ? standings.length : i + size)
+          .cast<Map<String, dynamic>>(),
+    );
+  }
+  return chunks;
+}
+
+
   /// Send the standings to Qwen to get witty banter
-  Future<List<Map<String, dynamic>>> getLeagueBanter(
-    Map<String, dynamic> leagueData) async {
+  Future<List<Map<String, dynamic>>> getLeagueBanter(Map<String, dynamic> leagueData) async {
   final leagueName = leagueData["league"]["name"];
   final standings = leagueData["standings"]["results"] as List;
 
-  // Build a text summary of teams for the AI prompt
-  final teamsInfo = standings
-      .map((team) =>
-          "${team["entry_name"]} managed by ${team["player_name"]} – ${team["total"]} pts (Rank ${team["rank"]})")
-      .join("\n");
+  // break into groups of 10 teams to keep AI fast
+  final chunks = _chunkStandings(standings, 10);
 
-  print(teamsInfo);
+  final futures = chunks.map((chunk) async {
+    final teamsInfo = chunk
+        .map((team) =>
+            "${team["entry_name"]} managed by ${team["player_name"]} – ${team["total"]} pts (Rank ${team["rank"]})")
+        .join("\n");
 
-  final url = Uri.parse('http://127.0.0.1:11434/api/chat');
+    final url = Uri.parse('http://127.0.0.1:11434/api/chat');
 
-  final res = await http.post(
-    url,
-    headers: {'Content-Type': 'application/json'},
-    body: jsonEncode({
-      "model": "qwen3:8b",
-      "messages": [
-   {
-  "role":"system",
-  "content":"You are a savage, witty football pundit writing like a scandal-hungry tabloid. For each team you’re given, output one JSON object with 'title' and 'description'. In 'title', write a sensational headline about the club’s situation (e.g. 'Palestine’s Power Surge Leaves League in Tears' or 'Bottom Three Beg for Mercy as Bingwa Collapse Again'). Do NOT use manager names in the title. In 'description', write a long, vivid, multi-sentence roast (4–6 sentences) that talks about the manager and players by name, comparing them to other teams and mocking their performances. Humiliate the lowest-ranked clubs as if they’re allergic to winning, while still referencing the top team’s dominance. Make it read like a scandal article with biting humour, exaggerated insults and wild stories about the league. Return only a plain JSON array (no object wrapping, no markdown, no text before/after). Use only standard quotes. Return up to 10 items (one per team given). Do not include code fences, commentary, or any non-JSON characters."
-},
+    final res = await http.post(
+      url,
+      headers: {'Content-Type': 'application/json'},
+      body: jsonEncode({
+        "model": "qwen3:8b",
+        "messages": [
+          {
+            "role": "system",
+            "content":
+                "You are a savage, witty football pundit writing like a scandal-hungry tabloid. For each team you’re given, output one JSON object with 'title' and 'description'. In 'title', write a sensational headline about the club’s situation (no manager names). In 'description', write a vivid, multi-sentence roast (4–6 sentences) that mocks the manager and players by name, comparing them to other teams. Humiliate the lowest-ranked clubs while referencing the top team’s dominance. Make it read like a scandal article. Return only a plain JSON array, up to 10 items."
+          },
+          {
+            "role": "user",
+            "content": "League: $leagueName\nTeams:\n$teamsInfo"
+          }
+        ],
+        "stream": false
+      }),
+    );
 
- {
-          "role": "user",
-          "content": "League: $leagueName\nTeams:\n$teamsInfo"
+    if (res.statusCode == 200) {
+      final data = jsonDecode(res.body);
+      final raw = data["message"]?["content"] ?? '[]';
+      return _safeDecodeList(raw);
+    } else {
+      return [
+        {
+          "title": "Error",
+          "description": "AI returned error: ${res.statusCode}"
         }
-      ],
-      "stream": false
-    }),
-  );
+      ];
+    }
+  }).toList();
 
-  if (res.statusCode == 200) {
-    final data = jsonDecode(res.body);
-    final raw = data["message"]?["content"] ?? '[]';
+  // run all chunk calls at once
+  final results = await Future.wait(futures);
 
-    final parsed = _safeDecodeList(raw);
-    return parsed;
-  } else {
-    return [
-      {
-        "title": "Error",
-        "description": "AI returned error: ${res.statusCode}"
-      }
-    ];
-  }
+  // merge all arrays into one
+  return results.expand((x) => x).toList();
 }
+
 
 List<Map<String, dynamic>> _safeDecodeList(String raw) {
   String cleaned =
