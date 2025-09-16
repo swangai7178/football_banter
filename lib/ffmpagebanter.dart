@@ -78,18 +78,13 @@ class _LeagueBanterPageState extends State<LeagueBanterPage> {
 }
 
 List<Map<String, dynamic>> _safeDecodeList(String raw) {
-  // 1. Strip out <think> sections and similar hidden blocks
   String cleaned =
       raw.replaceAll(RegExp(r"<think>[\s\S]*?</think>", dotAll: true), "").trim();
-
-  // 2. Strip markdown/code fences
   cleaned = cleaned
       .replaceAll(RegExp(r"^```json", multiLine: true), "")
       .replaceAll(RegExp(r"^```", multiLine: true), "")
       .replaceAll(RegExp(r"```$", multiLine: true), "")
       .trim();
-
-  // 3. Normalise quotes/apostrophes and other weird punctuation
   cleaned = cleaned
       .replaceAll('“', '"')
       .replaceAll('”', '"')
@@ -97,36 +92,23 @@ List<Map<String, dynamic>> _safeDecodeList(String raw) {
       .replaceAll('„', '"')
       .replaceAll('’', "'")
       .replaceAll('`', "'");
-
-  // 4. Remove BOM if present
   cleaned = cleaned.replaceAll(RegExp(r'^\uFEFF'), '');
-
-  // 5. Strip trailing commas inside objects/arrays (very common LLM mistake)
   cleaned = cleaned.replaceAll(RegExp(r',(\s*[}\]])'), r'$1');
-
-  // 6. Fix known bad key patterns (double or spaced quotes)
   cleaned = cleaned.replaceAll(RegExp(r'""title"'), '"title"');
   cleaned = cleaned.replaceAll(RegExp(r'" "title"'), '"title"');
   cleaned = cleaned.replaceAll(RegExp(r'" "description"'), '"description"');
-
-  // Debug print cleaned string if needed
   debugPrint('Cleaned AI output:\n$cleaned');
-
-  // 7. Try full decode first
   try {
     final decoded = jsonDecode(cleaned);
     if (decoded is List) {
       return decoded
-          .whereType<Map>() // only maps
+          .whereType<Map>()
           .map((m) => Map<String, dynamic>.from(m))
           .toList();
     }
   } catch (e) {
     debugPrint("Full decode failed, falling back: $e");
   }
-
-  // 8. Fallback: extract each JSON object individually
-  // Regex matches { ... } across multiple lines/nested braces
   final regex = RegExp(r'\{(?:[^{}]|(?R))*\}', dotAll: true, multiLine: true);
   final List<Map<String, dynamic>> items = [];
 
@@ -143,8 +125,6 @@ List<Map<String, dynamic>> _safeDecodeList(String raw) {
       }
     }
   }
-
-  // 9. Fallback if nothing worked
   if (items.isEmpty) {
     return [
       {
