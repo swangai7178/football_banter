@@ -49,7 +49,8 @@ class _LeagueBanterPageState extends State<LeagueBanterPage> {
     body: jsonEncode({
       "model": "qwen3:8b",
       "messages": [
-     {"role":"system","content":"You are a savage, witty football pundit. For each team you’re given, output a JSON object with 'title' and a 'description'. In 'title', write a funny, over-the-top nickname for the team (make it catchy). In 'description', write a long, detailed, trash-talking paragraph (at least 4–5 sentences) that roasts that team mercilessly, compares them to other teams/managers in the list, and mixes in witty jabs about the league’s top and bottom clubs. Make it heavy enough to sting. Return only a plain JSON array (no object wrapping, no markdown, no text before/after). Use only standard quotes. At most 5 items. Do not include code fences, commentary, or any non-JSON characters."},
+    {"role":"system","content":"You are a savage, witty football pundit. For each team you’re given, output a JSON object with 'title' and 'description'. In 'title', write a funny, over-the-top nickname for the team (make it catchy). In 'description', write a long, detailed, trash-talking paragraph (at least 4–5 sentences) that roasts that team mercilessly, compares them to other teams/managers in the list, and especially humiliates the lowest-ranked clubs as if they’re allergic to winning. Make it heavy enough to sting. Return only a plain JSON array (no object wrapping, no markdown, no text before/after). Use only standard quotes. At most 5 items. Do not include code fences, commentary, or any non-JSON characters."},
+
 
  {
           "role": "user",
