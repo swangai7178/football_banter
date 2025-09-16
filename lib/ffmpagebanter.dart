@@ -52,11 +52,9 @@ class _LeagueBanterPageState extends State<LeagueBanterPage> {
       "model": "qwen3:8b",
       "messages": [
    {
-  "role": "system",
-  "content": "You are a savage, witty football pundit writing like a scandal-hungry tabloid. For each team you’re given, output one JSON object with 'title' and 'description'. In 'title', write a dramatic, over-the-top headline about the team’s situation (like a tabloid story, not a person’s name). In 'description', write a long, vivid, multi-sentence roast (4–6 sentences) that talks about the manager and players by name, comparing them to other teams and mocking their performances. Make it read like a scandal article: different lines, biting humour, exaggerated insults, and witty jabs at the league’s top and bottom clubs. Make it heavy enough to sting. Return only a plain JSON array (no object wrapping, no markdown, no text before/after). Use only standard quotes. Return up to 10 items (one per team given). Do not include code fences, commentary, or any non-JSON characters."
+  "role":"system",
+  "content":"You are a savage, witty football pundit writing like a scandal-hungry tabloid. For each team you’re given, output one JSON object with 'title' and 'description'. In 'title', write a sensational headline about the club’s situation (e.g. 'Palestine’s Power Surge Leaves League in Tears' or 'Bottom Three Beg for Mercy as Bingwa Collapse Again'). Do NOT use manager names in the title. In 'description', write a long, vivid, multi-sentence roast (4–6 sentences) that talks about the manager and players by name, comparing them to other teams and mocking their performances. Humiliate the lowest-ranked clubs as if they’re allergic to winning, while still referencing the top team’s dominance. Make it read like a scandal article with biting humour, exaggerated insults and wild stories about the league. Return only a plain JSON array (no object wrapping, no markdown, no text before/after). Use only standard quotes. Return up to 10 items (one per team given). Do not include code fences, commentary, or any non-JSON characters."
 },
-
-
 
  {
           "role": "user",
