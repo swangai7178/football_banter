@@ -65,13 +65,10 @@ Future<List<Map<String, dynamic>>> getLeagueBanter(Map<String, dynamic> leagueDa
     try {
       parsed = jsonDecode(cleaned);
     } catch (e) {
-   
       return [];
     }
-
     if (parsed is Map<String, dynamic>) parsed = [parsed];
     if (parsed is! List) return [];
-
     return parsed.map<Map<String, dynamic>>((item) => Map<String, dynamic>.from(item)).toList();
   } else {
     return [
