@@ -57,7 +57,7 @@ Future<List<Map<String, dynamic>>> getLeagueBanter(Map<String, dynamic> leagueDa
     final data = jsonDecode(res.body);
     final raw = data["message"]?["content"] ?? '[]';
 
-    // Remove <think> tags if Qwen adds them
+  
     final cleaned =
         raw.replaceAll(RegExp(r"<think>[\s\S]*?</think>"), "").trim();
 
